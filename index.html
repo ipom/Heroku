@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+		<style>
+		  body {
+			margin: 0px;
+			padding: 0px;
+		  }
+		</style>
+        <title>Shitty Sheepy Ship</title>
+    </head>
+ 
+    <body>
+        <!-- <h1>Communication avec socket.io !</h1>
+
+        <p><input type="button" value="Embêter le serveur" id="poke" /></p> -->
+
+		<canvas id="myCanvas" width="578" height="200"></canvas>
+	
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://31.33.189.249:8080'); //http://localhost:8080
+			var canvas = document.getElementById('myCanvas');
+			canvas.width = window.innerWidth-20;
+			canvas.height = window.innerHeight-20;
+			var SCREEN_WIDTH	=	1000;
+			var SCREEN_HEIGHT	=	1000;
+			coefW = canvas.width/SCREEN_WIDTH;
+			coefH = canvas.height/SCREEN_HEIGHT;
+
+            // On demande le pseudo au visiteur...
+            var player = {};
+			var player_list = {};
+			var laser_list = {};
+			
+			player.pseudo = prompt('Quel est votre pseudo ?');
+            // Et on l'envoie avec le signal "pseudo" (pour le différencier de "message")
+            socket.emit('pseudo', player.pseudo);
+			//player.pos = {};
+			//player.pos.x = prompt('x');
+            //player.pos.y = prompt('y');
+            //player.angle = prompt('angle');
+			//socket.emit('testDraw', player);
+			
+			window.requestAnimFrame = (function(callback) {
+				return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
+				function(callback) {
+					window.setTimeout(callback, 1000 / 60);
+				};
+			})();			
+			
+            // On affiche une boîte de dialogue quand le serveur nous envoie un "message"
+            socket.on('message', function(message) {
+                alert('Le serveur a un message pour vous : ' + message);
+            });
+            socket.on('player_pos', function(joueur) {
+                //alert('drawship: ' + joueur);
+				player_list[joueur.pseudo]=joueur;
+			});
+            socket.on('laser_shot', function(laser) {
+                //alert('drawship: ' + joueur);
+				laser.update = function(){
+					var m = 8.0;
+					var kfrott=0.15;
+					
+					var newTime = new Date().getTime();
+					var dt40 = (newTime - laser.lastUpdate)/40;	
+					
+					var dir = { 'x':Math.cos(laser.angle), 'y':Math.sin(laser.angle) };
+					
+					var vectAcc = {										        //accelération=(somme des forces s'appliquant au vaisseau)/(masse du vaisseau)
+						'x':((laser.acc*dir.x - kfrott*laser.speed.x)/m),		//avec forces: f=-kfrott*v, poussée=kmot*dir
+						'y':((laser.acc*dir.y - kfrott*laser.speed.y)/m)
+						};
+						
+					laser.speed.x 	= dt40*vectAcc.x + laser.speed.x;		//On en déduit la nouvelle vitesse
+					laser.speed.y 	= dt40*vectAcc.y + laser.speed.y;
+							
+					laser.pos.x 	= dt40*laser.speed.x + laser.pos.x;		//Ainsi que la nouvelle position		
+					laser.pos.y 	= dt40*laser.speed.y + laser.pos.y;
+					
+					laser.lastUpdate = newTime;
+
+					if(laser.pos.x >= SCREEN_WIDTH || laser.pos.y >= SCREEN_HEIGHT || laser.pos.x < 0.0 || laser.pos.y < 0.0){
+						return false;
+					}
+					return true;
+				};
+			
+				laser_list[laser.id]=laser;
+				laser_list[laser.id].lastUpdate = new Date().getTime();
+			});
+			socket.on('delete_laser', function(laserid) {
+                //alert('delete: ' + laserid);
+				delete laser_list[laserid];
+			});
+			
+			var animate = function(context){
+				context.clearRect(0, 0, canvas.width, canvas.height);
+
+				for(id in player_list){
+					drawShip(player_list[id], context);
+				}
+				
+				for(id in laser_list){
+					if(laser_list[id].update()){
+						drawLaser(laser_list[id], context);
+					}
+					else{
+						delete(laser_list[id]);
+					}
+				}
+				requestAnimFrame(function() {
+					animate(context);
+				});
+			};
+
+			var drawShip = function(ship, context){
+				var rectWidth = 150;
+				var rectHeight = 75;
+		
+				context.translate(ship.pos.x*coefW, ship.pos.y*coefH);
+				context.rotate(ship.angle);
+
+				context.fillStyle = 'blue';
+				context.fillRect(rectWidth / -2, rectHeight / -2, rectWidth, rectHeight);
+				context.fillStyle = 'red';
+				context.fillRect(rectWidth / 2-10, rectHeight / -2, 10, rectHeight);
+				
+				context.rotate(-ship.angle);
+				context.translate(-ship.pos.x*coefW, -ship.pos.y*coefH);
+			};
+			var drawLaser = function(laser, context){
+				var rectWidth = 75;
+				var rectHeight = 10;
+		
+				context.translate(laser.pos.x*coefW, laser.pos.y*coefH);
+				context.rotate(laser.angle);
+
+				context.fillStyle = 'green';
+				context.fillRect(rectWidth / -2, rectHeight / -2, rectWidth, rectHeight);
+				
+				context.rotate(-laser.angle);
+				context.translate(-laser.pos.x*coefW, -laser.pos.y*coefH);
+			};
+			
+            // Lorsqu'on clique sur le bouton, on envoie un "message" au serveur
+            $('#poke').click(function () {
+                socket.emit('message', 'Salut serveur, ça va ?');
+            });
+
+			$(document).keydown(function(event){
+				//alert('keydown : ' + event.keyCode);
+				if(event.keyCode == 38)
+					{socket.emit('key_down', 'up');}
+				else if(event.keyCode == 40)
+					{socket.emit('key_down', 'down');}
+				else if(event.keyCode == 37)
+					{socket.emit('key_down', 'left');}
+				else if(event.keyCode == 39)
+					{socket.emit('key_down', 'right');}
+				else if(event.keyCode == 32)
+					{socket.emit('key_down', 'shoot');}			
+            });
+
+			$(document).keyup(function(event){
+				//alert('keyup : ' + event.keyCode);
+				if(event.keyCode == 38)
+					{socket.emit('key_up', 'up');}
+				else if(event.keyCode == 40)
+					{socket.emit('key_up', 'down');}
+				else if(event.keyCode == 37)
+					{socket.emit('key_up', 'left');}
+				else if(event.keyCode == 39)
+					{socket.emit('key_up', 'right');}
+				else if(event.keyCode == 32)
+					{socket.emit('key_up', 'shoot');}			
+            });
+			/*<script type="text/javascript" src="sss-Board.js">*/
+			setTimeout(function() {
+				var context = canvas.getContext('2d');
+				animate(context);
+			}, 1000);
+        </script>
+</html>
+		
+		
+		
+		
+		
+		
+		
+    </body>
+</html>
