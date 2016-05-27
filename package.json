@@ -2,6 +2,6 @@
     "name": "sss-Bam",
     "version": "0.1.0",
     "dependencies": {
-        "markdown": "~0.4"
+        "socket.io": "~1.0"
     }
 }
