@@ -261,6 +261,6 @@ var animate = function(){
 	}
 }
 
-server.listen(8080, function(){
+server.listen(process.argv[2], function(){
 	setInterval(animate, 40);
 });
