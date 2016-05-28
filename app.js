@@ -1,6 +1,6 @@
 var http = require('http');
 var fs = require('fs');
-/*var math = require('Math');
+var math = require('Math');
 var player_list ={};
 var laser_list = {};
 var missiles = {};
@@ -21,13 +21,13 @@ var SCREEN_HEIGHT	=	1000;
 		
 
 // Chargement du fichier index.html affiché au client
-*/var server = http.createServer(function(req, res){
+var server = http.createServer(function(req, res){
     fs.readFile('./index.html', 'utf-8', function(error, content){
         res.writeHead(200, {"Content-Type": "text/html"});
         res.end(content);
     });
 });
-/*
+
 var io = require('socket.io').listen(server);
 
 io.sockets.on('connection', function (joueur){
@@ -260,7 +260,7 @@ var animate = function(){
 		}
 	}
 }
-*/
+
 server.listen(process.argv[2], function(){
 	//setInterval(animate, 40);
 });
