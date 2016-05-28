@@ -6,6 +6,6 @@
     "start": "node app.js $PORT"
     },
     "dependencies" :{
-        "socket.io": "~1.0"
+        "socket.io": "~1.0", "math": "3.2.1"
     }
 }
