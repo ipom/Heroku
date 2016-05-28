@@ -24,7 +24,7 @@ var SCREEN_HEIGHT	=	1000;
 */var server = http.createServer(function(req, res){
     fs.readFile('./index.html', 'utf-8', function(error, content){
         res.writeHead(200, {"Content-Type": "text/html"});
-        res.end("ok nikel");//content);
+        res.end(content);
     });
 });
 /*
