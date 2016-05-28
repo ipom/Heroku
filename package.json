@@ -6,7 +6,7 @@
     "start": "node app.js $PORT"
     },
     "dependencies" :{
-        "socket.io": "~1.0", "math": "3.2.1"
+        "socket.io": "~1.0", "math": "~3.0.0"
     },
     "engines": {
         "node": "4.4.5"
