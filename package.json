@@ -7,7 +7,7 @@
     },
     "dependencies" :{
         "socket.io": "~1.0", "math": "3.2.1"
-    }
+    },
     "engines": {
         "node": "4.1.1"
     }
