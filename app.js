@@ -24,7 +24,11 @@ var SCREEN_HEIGHT	=	1000;
 var server = http.createServer(function(req, res){
     fs.readFile('./index.html', 'utf-8', function(error, content){
         res.writeHead(200, {"Content-Type": "text/html"});
-        res.end(content);
+        res.write(content);
+        res.write(process.argv[2]);
+        fs.readFile('./index2.html', 'utf-8', function(error2, content2){
+        	res.end(content2);
+	});
     });
 });
 
